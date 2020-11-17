@@ -1,0 +1,28 @@
+<!doctype html>
+<title>{% block title %}{% endblock %} - Jaripo</title>
+<link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+{% block meta %}{% endblock %}
+<nav>
+  <h1><a href="{{ url_for('index') }}">Jarek's Rigged Scrum Poker System</a></h1>
+  <ul>
+    {% if request.user and request.user.logged %}
+      <li><a href="{{ url_for('scoreboard') }}">Scoreboard</a>
+      <li><a href="{{ url_for('vote') }}">Vote</a>
+      <li><a href="{{ url_for('logout') }}">Log Out</a>
+    {% else %}
+      <li><a href="{{ url_for('login') }}">Log In</a>
+    {% endif %}
+  </ul>
+</nav>
+{% if request.user %}
+    <span class="hello">Logged as {% if session.get('is_master') %}master{% endif %} <b>{{ request.user.username }}</b></span>
+{%  endif %}
+<section class="content">
+  <header>
+    {% block header %}{% endblock %}
+  </header>
+    {% for message in get_flashed_messages() %}
+        <div class="flash">{{ message }}</div>
+    {% endfor %}
+    {% block content %}{% endblock %}
+</section>

@@ -1,0 +1,47 @@
+{% extends 'base.html' %}
+
+
+{% block header %}
+  <h1>{% block title %}Scoreboard{% endblock %}</h1>
+{% endblock %}
+
+
+{% block content %}
+
+<table class="scoreboard">
+<thead>
+<tr><td>Name</td><td>Vote</td></tr>
+</thead>
+<tbody>
+{% for u in users %}
+<tr><td><b>{{ u.username }}</b></td><td>
+    {% if not u.vote %}
+        Waiting...
+    {% elif not show %}
+        Ready!
+    {% else %}
+        {{ u.vote }}
+    {% endif %}</td></tr>
+{% endfor %}
+</tbody>
+</table>
+<br />
+{% if show and stats %}
+    min={{ stats.get('min') }}, max={{ stats.get('max') }}, avg={{ stats.get('avg') }}
+{% endif %}
+
+<br>
+
+<form action="" method="post">
+{% if session.get('is_master') %}
+<input type="submit" name="reset" value="Reset">
+<input type="submit" name="show" value="Show">
+{% endif %}
+<input type="submit" name="refresh" value="Refresh">
+</form>
+
+{% if error %}
+<p class="error"><strong>Error:</strong> {{ error }}
+{% endif %}
+
+{% endblock %}

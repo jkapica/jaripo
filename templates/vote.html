@@ -1,0 +1,22 @@
+{% extends 'base.html' %}
+
+{% block header %}
+  <h1>{% block title %}Please submit your vote{% endblock %}</h1>
+{% endblock %}
+
+{% block content %}
+
+<div class="container">
+  <br>
+    e.g. Fibonacci: 1, 2, 3, 5, 8, 13, 20, 40, 80 <br />
+    e.g. T-Shirt: XS, S, M, L, XL <br />
+  <form action="" method="post">
+    <input type="text" placeholder="Vote" name="vote" value="{{ user.vote or ''}}" /><br/>
+    <input type="submit" name="submit" value="Submit" />
+  </form>
+  {% if error %}
+    <p class="error"><strong>Error:</strong> {{ error }}
+  {% endif %}
+</div>
+
+{% endblock %}
