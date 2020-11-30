@@ -15,7 +15,7 @@
   </ul>
 </nav>
 {% if request.user %}
-    <span class="hello">Logged as {% if session.get('is_master') %}master{% endif %} <b>{{ request.user.username }}</b></span>
+    <span class="hello">Logged as {% if request.user.is_master %}master{% endif %} <b>{{ request.user.username }}</b></span>
 {%  endif %}
 <section class="content">
   <header>

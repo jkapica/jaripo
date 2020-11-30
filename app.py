@@ -21,12 +21,41 @@ class User(db.Model):
     passwd = db.Column(db.String(80), nullable=False)
     logged = db.Column(db.Boolean, default=False)
     vote = db.Column(db.String(32))
+    is_master = db.Column(db.Boolean, default=False)
+
+
+class Option(db.Model):
+    name = db.Column(db.String(64), primary_key=True, nullable=False)
+    value = db.Column(db.String(64))
 
 
 try:
     db.create_all()
 except Exception as ex:
     print(ex)
+
+
+def show_votes(value=None):
+    if value is None:
+        if User.query.filter_by(vote=None).count() == 0:
+            value = True
+
+    if value is not None:
+        value = str(bool(value))
+
+    name = 'show_votes'
+    opt = Option.query.filter_by(name=name).first()
+    if opt is None:
+        opt = Option(name=name, value=value)
+        db.session.add(opt)
+        db.session.commit()
+        return bool(value)
+
+    if value is not None and opt.value != value:
+        opt.value = value
+        db.session.commit()
+
+    return opt.value == str(True)
 
 
 def passwd(plain):
@@ -45,7 +74,6 @@ def setup_user():
     )):
         return  # No redirect
 
-    print('redirect to login')
     return redirect(url_for('login'))
 
 
@@ -75,11 +103,11 @@ def login():
             user.logged = False
             error = 'Wrong password!'
 
+        user.is_master = bool(user.logged and request.form.get('is_master'))
         db.session.commit()
-        session['is_master'] = user.logged and request.form.get('is_master')
         if user.logged:
             session['uid'] = user.id
-            return redirect(url_for('index'))
+        return redirect(url_for('index'))
     return render_template(
         'login.html',
         error=error,
@@ -111,34 +139,40 @@ def vote():
 
 @app.route('/scoreboard', methods=['GET', 'POST'])
 def scoreboard():
-    show = request.form.get('show')
+    show = None
     reset = request.form.get('reset')
-    refresh = request.form.get('refresh')
-    print(f'{show=}, {reset=}, {refresh=}')
 
     users = User.query.filter_by(logged=True).all()
     stats = {}
-    if request.method == 'POST' and request.form.get('reset'):
-        for u in users:
-            u.vote = None
-        db.session.commit()
-    else:
-        values = []
-        for u in users:
-            try:
-                values.append(float(u.vote))
-            except:
-                pass
-        if values:
-            stats['min'] = min(values)
-            stats['max'] = max(values)
-            stats['avg'] = sum(values) / len(values)
+    if request.method == 'POST':
+        print(f'POST={dict(request.form)}')
+        if request.form.get('show') and request.user.is_master:
+            show = show_votes(True)
+        if reset and request.user.is_master:
+            show = show_votes(False)
+            for u in users:
+                u.vote = None
+            db.session.commit()
+        return redirect(url_for('scoreboard'))
+
+    values = []
+    for u in users:
+        try:
+            values.append(float(u.vote))
+        except:
+            pass
+    if values:
+        stats['min'] = min(values)
+        stats['max'] = max(values)
+        stats['avg'] = sum(values) / len(values)
+
+    if show is None:
+        show = show_votes()
 
     return render_template(
         'scoreboard.html',
-        user=request.user,
         users=users,
-        show=request.form.get('show'),
+        show=show,
         stats=stats,
     )
 

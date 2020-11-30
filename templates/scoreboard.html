@@ -14,7 +14,7 @@
 </thead>
 <tbody>
 {% for u in users %}
-<tr><td><b>{{ u.username }}</b></td><td>
+<tr><td><b>{{ u.username }} {% if u.is_master %}(M){% endif %}</b></td><td>
     {% if not u.vote %}
         Waiting...
     {% elif not show %}
@@ -33,7 +33,7 @@
 <br>
 
 <form action="" method="post">
-{% if session.get('is_master') %}
+{% if request.user.is_master %}
 <input type="submit" name="reset" value="Reset">
 <input type="submit" name="show" value="Show">
 {% endif %}
